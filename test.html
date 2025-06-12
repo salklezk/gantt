@@ -3,11 +3,41 @@
 <head>
    <script src="codebase/dhtmlxgantt.js"></script>
    <link href="codebase/dhtmlxgantt.css" rel="stylesheet">
+   <link href="test.css" rel = "stylesheet">
 </head>
 <body>
-    <div id="gantt_here" style='width:1000px; height:400px;'></div>
-    <script type="text/javascript">
-        gantt.init("gantt_here");
+    <div id="gantt_here" style='width:1000px; height:400px;'>
+        <script type="text/javascript" src = "test.js" defer>
     </script>
-</body>
+
+<div id="assignment-lightbox" style="display: none;">
+  <div class="lightbox-overlay">
+      <div class="lightbox-content">
+          <h2>Create Assignment</h2>
+          <div class="form-group">
+              <label for="resource-select">Resource</label>
+              <select id="resource-select" class="resource-select">
+                  <!-- Options will be populated dynamically -->
+              </select>
+          </div>
+          <div class="form-group">
+              <label for="start-date">Start Date</label>
+              <input type="date" id="start-date">
+          </div>
+          <div class="form-group">
+              <label for="end-date">End Date</label>
+              <input type="date" id="end-date">
+          </div>
+          <div class="form-group">
+              <label for="allocation">Allocation (%)</label>
+              <input type="number" id="allocation" min="1" max="100" value="100">
+          </div>
+          <div class="button-group">
+              <button class="btn-secondary" id="cancel-btn">Cancel</button>
+              <button class="btn-primary" id="save-btn">Save Assignment</button>
+          </div>
+      </div>
+  </div>
+</div>
+ody>
 </html>
