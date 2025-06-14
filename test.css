@@ -4,6 +4,9 @@ html, body {
     margin: 0px;
     overflow: hidden;
 }
+#my-form {
+  display:none; 
+}
 
 .gantt_section_time_spacer{
     flex-basis: auto;
