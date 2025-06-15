@@ -4,36 +4,14 @@ html, body {
     margin: 0px;
     overflow: hidden;
 }
-#my-form {
-  display:none; 
+.updColor{
+  background-color:#ffeb8a!important ;   
+  
 }
-
-.gantt_section_time_spacer{
-    flex-basis: auto;
-    visibility: visible;
+#gantt_here {
+  width: 100%;
+  color:blue;
 }
-
-/* Project styling */
-.gantt_task_project {
-    background-color: #e3f2fd;
-    border-color: #90caf9;
-  }
-  
-  /* Phase styling */
-  .gantt_task_phase {
-    background-color: #e8f5e9;
-    border-color: #a5d6a7;
-  }
-  
-  /* Assignment styling */
-  .gantt_task_assignment {
-    height: 12px;
-    background-color: #fff3e0;
-    border-color: #ffcc80;
-    border-style: dashed;
-  }
-  
-  /* Hide edit button for assignments */
-  .gantt_task_assignment .gantt_task_edit {
-    display: none !important;
-  }
+.baseline_button{
+  width: 100px;
+}

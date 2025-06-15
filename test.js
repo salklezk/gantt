@@ -4,39 +4,16 @@ gantt.config.columns = [
   { name: "end_date",label:"End Time", align: "center", width: 100, resize: true },
   {
     name: "owner", align: "center", width: 75, label: "Owner", template: function(task) {
-      console.log(task.owner);
-      console.log(task)
-      if (!task.owner || task.owner === "0") return "Unassigned";
-   //   console.log(resourcesStore.getItem(task.owner[0]));
-      let resource = resourcesStore.getItem(task.owner.resource_id).label;
-      return resource ;
+     // console.log(gantt.getTaskAssignments(task.id)[0].resource_id);
+     if(gantt.getTaskAssignments(task.id)[0] && task.type == "assignment"){
+      return resourcesStore.getItem((gantt.getTaskAssignments(task.id)[0]).resource_id).label;
+     }
+    return "Unassigned";
+
     } },
   { name: "allocation",label:"Allocation", align: "center", width: 100, resize: true },
   { name: "add", width: 44 }
 ];
-gantt.config.resources = true;
-gantt.config.resource_store = "resource";
-gantt.config.resource_property = "owner";
-gantt.config.order_branch = true;
-	gantt.config.open_tree_initially = true;
-/*var resourceGridConfig = {
-  columns: [
-    {
-        name: "status", label: "Status", width: 60, align: "center", 
-        template: function (task) {
-            var progress = task.progress || 0;
-            return Math.floor(progress * 100) + "";
-        }
-    },
-    {
-        name: "impact", width: 80, label: "Impact", template: function (task) {
-            return (task.duration * 1000).toLocaleString("en-US", {
-              style: 'currency', currency: 'USD'
-          });
-        }
-    }
-  ]
-};
 gantt.config.layout = {
   css: "gantt_container",
   rows:[
@@ -63,36 +40,59 @@ gantt.config.layout = {
       {
           view: "scrollbar", 
           id:"scrollHor"
-      },
-      {
-        // a custom layout
-        cols: [
-          {view: "grid", id: "resourceGrid", bind:"resource", 
-              config:resourceGridConfig, scrollY:"resourceVScroll"},
-          {resizer: true, width: 1},
-          {view:"timeline", id:"resourceTimeline", scrollX:"scrollHor", 
-              bind:"resource", 
-              scrollY:"resourceVScroll"},
-          {view: "scrollbar", id:"resourceVScroll"}
-        ]
-      },
-      {view: "scrollbar", id:"scrollHor"}
+      }
   ]
-}*/
+}
 /***************************************************RESOURCE************************************************************ */
 var resourcesStore = gantt.createDatastore({
   name: gantt.config.resource_store,
 });
 
+function getOwnerOptions() {
+  return [
+    { key: 1, label: "Anton" },
+    { key: 2, label: "Mike" },
+    { key: 3, label: "Poilina" }
+  ];
+}
+
 
 /******************************************settings***************************************************************** */
+gantt.config.resources = true;
+gantt.config.resource_store = "resource";
+gantt.config.resource_property = "owner";
+gantt.config.order_branch = true;
+	gantt.config.open_tree_initially = true;
+  gantt.locale.labels.section_owner ="Owners";
+  gantt.locale.labels.type_project = "Project";
+gantt.locale.labels.type_phase = "Phase";
+gantt.locale.labels.type_assignment = "Assignment";
+gantt.locale.labels.type_task = "Task";
+gantt.locale.labels.type_baseline= "baseline";
 
-//gantt.config.auto_types = true;
-//gantt.config.order_branch = true;
+gantt.config.types = {
+  project: "project",
+  phase: "phase",
+  task: "task",
+  assignment: "assignment",
+  baseline: "baseline",
+}
+
+gantt.config.task_types = {
+  project: ["phase", "task", "assignment"],
+  phase: ["task", "assignment"],
+  task: ["assignment"],
+  assignment: ["baseline"],
+};
+
+
+
+
 /*********************************************************MOVEMENT**************************************************** */
 
 
 gantt.attachEvent("onAfterTaskAdd",function(id,task){
+  console.log(gantt.getTaskAssignments(task.id));
   if(task.type == "assignment" && gantt.getParent(id) != 0){
     let children = gantt.getChildren(gantt.getParent(id));
  
@@ -197,78 +197,6 @@ gantt.attachEvent("onAfterTaskDrag", function(id, mode, e){
       },id );
   }
 });
-
-gantt.config.types = {
-  project: "project",
-  phase: "phase",
-  task: "task",
-  assignment: "assignment",
-  baseline: "baseline",
-}
-
-gantt.config.task_types = {
-  project: ["phase", "task", "assignment"],
-  phase: ["task", "assignment"],
-  task: ["assignment"],
-  assignment: ["baseline"],
-};
-gantt.locale.labels.type_project = "Project";
-gantt.locale.labels.type_phase = "Phase";
-gantt.locale.labels.type_assignment = "Assignment";
-gantt.locale.labels.type_task = "Task";
-gantt.locale.labels.type_baseline= "baseline";
-
-function getResourceOptions() {
-  return [
-    { key: 1, label: "Developer" },
-    { key: 2, label: "QA" },
-    { key: 3, label: "PM" }
-  ];
-}
-
-gantt.locale.labels.section_owner ="Owners";
-/********************************************************SECTIONS********************************************************** */
-
-gantt.form_blocks["allocation_editor"]={
-  render:function(sns){ //sns - the section's configuration object
-      return `<div class="form-group">+
-      <label>Allocation (%):</label> 
-      <input type="number" id="assignment-allocation" 
-             min="1" max="100" value="100" class="form-control">
-  </div>`;
-  },
-  set_value:function(node,value,task,section){
-      //node - an html object related to the html defined above
-      //value - a value defined by the map_to property
-      //task - the task object
-      //section- the section's configuration object
-    
-  },
-  get_value:function(node,task,section){
-      //node - an html object related to the html defined above
-      //task - the task object
-      //section - the section's configuration object
-      return node.querySelector(".form-control").value;
-  },
-  focus:function(node){
-      //node - an html object related to the html defined above
-  }
-}
-
-gantt.config.lightbox.sections = [
-  {name: "description", height: 70, map_to: "text", type: "textarea", focus: true},
-  {name: "type", type: "typeselect", map_to: "type"},
-  {name: "time", type: "duration", map_to: "auto"}, 
-  {name: "owner", type: "resources",map_to:"auto", options: getResourceOptions()}
-
-];
-gantt.config.lightbox.assignment_sections= [
-  {name: "description", height: 70, map_to: "text", type: "textarea", focus: true},
-  {name: "time", type: "duration", map_to: "auto"},
-  {name: "allocation", type:"allocation_editor", map_to: "allocation"},
-  {name: "owner_assignment",type: "resources",map_to: "auto", options: getResourceOptions()}
-];
-
 gantt.attachEvent("onLightboxSave", function(id, task, is_new){
   gantt.updateTask(id);
   if(task.parent != 0){
@@ -280,13 +208,45 @@ gantt.attachEvent("onLightboxSave", function(id, task, is_new){
 })
 
 
+/********************************************************SECTIONS********************************************************** */
+
+
+gantt.config.lightbox.sections = [
+  {name: "description", height: 70, map_to: "text", type: "textarea", focus: true},
+  {name: "type", type: "typeselect", map_to: "type"},
+  {name: "time", type: "duration", map_to: "auto"}, 
+  {name: "owner", type: "resources",map_to:"auto", options: getOwnerOptions()}
+
+];
+gantt.config.lightbox.assignment_sections= [
+  {name: "description", height: 70, map_to: "text", type: "textarea", focus: true},
+  {name: "time", type: "duration", map_to: "auto"},
+  {name:"allocation", height:22, map_to:"allocation", type:"select", options: [ 
+    {key:"QA", label: "QA"},                                               
+    {key:"Developer", label: "Developer"},                                             
+    {key:"Other", label: "Other"}                                                 
+ ]},   
+  {name: "owner_assignment",type: "resources",map_to: "auto", options: getOwnerOptions()}
+];
+
+
 /********************************************STYLE********************************************************* */
 gantt.templates.task_text = function(start, end, task){
-  return task.type ;
+
+  if (task.type != "assignment"){ 
+    if((gantt.getTaskAssignments(task.id)[0])){
+    return task.type + ", owner: " + resourcesStore.getItem(((gantt.getTaskAssignments(task.id)[0]).resource_id)).label ;
+    }}
+   //return task.type;
 }
 gantt.templates.task_class = function(start, end, task){
-      return task.type;
+      if (task.type == "baseline"){
+        return "baseline"
+      }
   }
+gantt.templates.scale_row_class = function(scale){           
+    return "updColor";
+}
 
 
 
@@ -306,8 +266,10 @@ gantt.templates.task_class = function(start, end, task){
 gantt.init("gantt_here");
 
 resourcesStore.parse([// resources
-  { key: 1, label: "Developer" },
-    { key: 2, label: "QA" },
-    { key: 3, label: "PM" }
+  { id: 1, label: "Anton" },
+    { id: 2, label: "Mike" },
+    { id: 3, label: "Polina"}, 
 ]);
- 
+var state_button = false
+let elem = document.getElementById("baseline");
+
