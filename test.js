@@ -116,39 +116,14 @@ gantt.attachEvent("onTaskDrag", function(id, mode, task, original){
   var state = gantt.getState();
   var modes = gantt.config.drag_mode;
   var diff = task.start_date - original.start_date;
-  if (gantt.getParent(task.id) != 0 && task.type == "assignment"){
-    let parent_task = gantt.getTask(task.parent);
+  /*if ((task.type == "assignment" || task.type == "baseline") && mode == modes.resize){
 
- /* if(mode = modes.resize && +(parent_task.start_date) > +(task.start_date)){
-
-    parent_task.start_date = gantt.roundDate({
-      date:task.start_date, 
-      unit:state.scale_unit, 
-      step:state.scale_step});
-    gantt.updateTask(task.parent);
-  }
-  else if(mode = modes.resize && +(parent_task.start_date) < +(task.start_date)) {
-    parent_task.start_date = gantt.roundDate({
-      date:task.start_date, 
-      unit:state.scale_unit, 
-      step:state.scale_step});
-    gantt.updateTask(task.parent);
   }*/
-  }
-  else if(mode == modes.move && task.type != "assignment"){
+  if (gantt.getParent(task.id) != 0){
+  var children = gantt.getChildren(gantt.getParent(id));
  
-      gantt.eachTask(function(child){
-          child.start_date = new Date(+child.start_date + diff);
-          child.end_date = new Date(+child.end_date + diff);
-          gantt.refreshTask(child.id, true);
-      },id );
-  }
-  if(mode == modes.move && task.type == "assignment"){
-   
-    let children = gantt.getChildren(gantt.getParent(id));
- 
-    let start_date = gantt.getTask(children[0]).start_date;
-    let end_date = gantt.getTask(children[0]).end_date;
+    var start_date = gantt.getTask(children[0]).start_date;
+    var end_date = gantt.getTask(children[0]).end_date;
 
     gantt.eachTask(function(child){
         if(+(start_date) > +(child.start_date)){
@@ -158,6 +133,28 @@ gantt.attachEvent("onTaskDrag", function(id, mode, task, original){
           end_date = child.end_date;
         }
     }, gantt.getParent(id));
+  }
+  if (gantt.getParent(task.id) != 0 && task.type == "assignment"){
+    let parent_task = gantt.getTask(task.parent);
+    if(mode == modes.resize){
+      if(task.start_date <= start_date){
+          parent_task.start_date = task.start_date;
+          gantt.updateTask(parent_task.id);
+
+      }
+    }
+  }
+  else if(mode == modes.move && task.type != "assignment"){
+ 
+      gantt.eachTask(function(child){
+          child.start_date = new Date(+child.start_date + diff);
+          child.end_date = new Date(+child.end_date + diff);
+          gantt.updateTask(child.id);
+      },id );
+  }
+  if(mode == modes.move && task.type == "assignment"){
+   
+   
     if(gantt.getTask(gantt.getParent(id)).end_date < end_date){
       gantt.getTask(gantt.getParent(id)).end_date = end_date;
       gantt.getTask(gantt.getParent(id)).start_date = start_date;
@@ -173,7 +170,7 @@ gantt.attachEvent("onTaskDrag", function(id, mode, task, original){
 gantt.attachEvent("onAfterTaskDrag", function(id, mode, e){
   var modes = gantt.config.drag_mode;
   var state = gantt.getState();
-  if((mode == modes.move )  && gantt.getParent(id)){
+  if((mode == modes.move ||  mode == modes.resize)  && gantt.getParent(id)){
     let parent = gantt.getTask(gantt.getParent(id));
     parent.start_date = gantt.roundDate({
       date:parent.start_date, 
@@ -236,7 +233,11 @@ gantt.templates.task_text = function(start, end, task){
   if (task.type != "assignment"){ 
     if((gantt.getTaskAssignments(task.id)[0])){
     return task.type + ", owner: " + resourcesStore.getItem(((gantt.getTaskAssignments(task.id)[0]).resource_id)).label ;
-    }}
+    }
+    else{ 
+      return task.type;}
+    }
+  return "";
    //return task.type;
 }
 gantt.templates.task_class = function(start, end, task){
@@ -271,5 +272,6 @@ resourcesStore.parse([// resources
     { id: 3, label: "Polina"}, 
 ]);
 var state_button = false
-let elem = document.getElementById("baseline");
+
+
 
